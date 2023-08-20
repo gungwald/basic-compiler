@@ -1,45 +1,53 @@
-PGM=rnd
-BASE_DSK=../storage/prodos-2.0.3-boot.dsk
-# It is necessary to use this older version of AppleCommander to support
-# the PowerBook G4 and iBook G3. This version only requires Java 1.3.
-AC=java -jar ../lib/AppleCommander-1.3.5-ac.jar
-AS65=java -cp ../lib/dev65.jar uk.co.demon.obelisk.w65xx.As65
-LK65=java -cp ../lib/dev65.jar uk.co.demon.obelisk.w65xx.Lk65
-SRC=$(PGM).s
-VOL=$(PGM)
-DSK=$(PGM).dsk
-APPLEWIN_VER=1.29.10.0
-TO_REMOVE=$(PGM).bin $(PGM).lst $(PGM).map $(DSK) _FileInformation.txt $(PGM).obj *~
+# Builds BASIC compiler
 
-ifeq ($(OS),Windows_NT)
-	COPY=copy
-	remove=for %%f in $(1) do if exist %%f del %%f
-	EMU=$(USERPROFILE)\Dropbox\opt\applewin-$(APPLEWIN_VER)\applewin.exe -no-printscreen-dlg -s7 empty -s6d1
-else
-	COPY=cp
-	remove=for f in $(1); do if [ -f $$f ]; then rm $$f; fi; done
-	EMU=wine $(HOME)/Dropbox/opt/applewin-$(APPLEWIN_VER)/applewin -no-printscreen-dlg -s7 empty -s6d1
+# Requirements:
+# 1. Gmake must be used.
+# 2. The cc65 compiler must be properly setup.
+
+ifndef CC65_TARGET
+	CC65_TARGET:=apple2enh
 endif
 
-# There is some kind of problem with turning this into a boot disk
-# after it is created by AppleCommander. So, copy an existing boot
-# disk instead.
-#$(AC) -pro140 $(DSK) $(VOL)
+ifeq ($(OS),Windows_NT)
+    COPY=copy
+else
+    COPY=cp
+endif
 
-$(DSK): $(PGM)
-	$(COPY) $(BASE_DSK) $(DSK)
-	#$(AC) -p $(DSK) STARTUP BAS < ../storage/STARTUP#fc0801
-	$(AC) -p $(DSK) $(PGM) BIN 0x8000 < $(PGM).bin
+PGM=basiccomp
+DISK_VOL=$(PGM)
+DISK=$(PGM).dsk
+BASE_DISK=../storage/prodos-2.0.3-boot.dsk
+AC=java -jar ../lib/AppleCommander-ac-1.4.0.jar
 
-$(PGM): $(PGM).obj
-	$(LK65) -code '$$8000-$$9000' -bin $(PGM).obj
+CC=cl65
+AS=ca65
+OBJS=$(PGM).o
+HDRS=
+CFLAGS=-O -t $(CC65_TARGET) -DTRACE
+LDFLAGS=-t $(CC65_TARGET) # -S $6000 to make both hi-res pages available
 
-# as65 does not exit with a non-zero code so that make can detect when it failed.
-$(PGM).obj: symbols.s macros.s $(SRC)
-	$(AS65) $(SRC) 2>&1 | tee as65-output.txt && [ ! -s as65-output.txt ]
+# Extra stuff
+BASIC_AUX_TYPE=0x0801
+READ_TIME_LOAD_ADDR=0x0260
+SYS_LOAD_ADDR=0x2000
+BIN_LOAD_ADDR=0x0803
 
-test: $(DSK)
-	$(EMU) $(DSK)
+########################################
+
+all: $(DISK)
+
+$(DISK): $(PGM)
+	$(RM) $(DISK)
+	$(COPY) $(BASE_DISK) $(DISK)
+	$(AC) -as $(DISK) $(PGM) BIN < $(PGM) || $(RM) $(DISK)
+
+$(PGM): $(OBJS)
+	$(CC) $(LDFLAGS) -o $@ $^
+
+test: $(DISK)
+	applewin -d1 $(DISK)
+	#$(APPLEWIN) -s7 empty -d1 $(DISK)
 
 clean:
-	$(call remove,$(TO_REMOVE))
+	$(RM) *.o $(PGM) $(DISK)
