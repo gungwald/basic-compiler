@@ -1,8 +1,9 @@
-# Builds BASIC compiler
+# Builds BASIC compiler: basiccomp
 
 # Requirements:
-# 1. Gmake must be used.
-# 2. The cc65 compiler must be properly setup.
+# 1. Gmake must be used
+# 2. The cc65 compiler must be properly setup
+# 3. The AppleWin emulator is required for testing
 
 ifndef CC65_TARGET
 	CC65_TARGET:=apple2enh
