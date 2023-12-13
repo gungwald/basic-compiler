@@ -1,6 +1,10 @@
 # Vim files
 *.swp
 
+# Apple II binaries
+src/basiccomp
+src/basiccomp.dsk
+
 # Prerequisites
 *.d
 

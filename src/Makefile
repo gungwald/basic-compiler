@@ -41,7 +41,7 @@ all: $(DISK)
 $(DISK): $(PGM)
 	$(RM) $(DISK)
 	$(COPY) $(BASE_DISK) $(DISK)
-	$(AC) -as $(DISK) $(PGM) BIN < $(PGM) || $(RM) $(DISK)
+	$(AC) -as $(DISK) BC BIN < $(PGM) || $(RM) $(DISK)
 
 $(PGM): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^
