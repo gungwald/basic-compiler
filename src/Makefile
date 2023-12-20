@@ -23,8 +23,8 @@ AC=java -jar ../lib/AppleCommander-ac-1.4.0.jar
 
 CC=cl65
 AS=ca65
-OBJS=$(PGM).o
-HDRS=
+OBJS=$(PGM).o binarytree.o
+HDRS=binarytree.h
 CFLAGS=-O -t $(CC65_TARGET) -DTRACE
 LDFLAGS=-t $(CC65_TARGET) # -S $6000 to make both hi-res pages available
 
